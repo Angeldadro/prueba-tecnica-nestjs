@@ -11,9 +11,11 @@ import { ITEM_REPOSITORY } from '../domain/repos/item.repository';
 import { PayOrderUseCase } from '../application/pay-order.usecase';
 import { IncreaseItemStockUseCase } from '../application/increase-item-stock.usecase';
 import { DecreaseItemStockUseCase } from '../application/decrease-item-stock.usecase';
+import { ListOrdersUseCase } from '../application/list-orders.usecase';
+import { ListOrdersController } from '../infrastructure/controllers/list-orders.controller';
 
 @Module({
-  controllers: [CreateOrderController],
+  controllers: [CreateOrderController, ListOrdersController],
   providers: [
     {
       provide: ORDER_REPOSITORY,
@@ -31,8 +33,9 @@ import { DecreaseItemStockUseCase } from '../application/decrease-item-stock.use
     IncreaseItemStockUseCase,
     DecreaseItemStockUseCase,
     CreateOrderUseCase,
+    ListOrdersUseCase,
     PrismaService,
   ],
-  exports: [CreateOrderUseCase, PrismaService],
+  exports: [PrismaService],
 })
 export class OrdersModule {}

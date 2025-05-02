@@ -41,7 +41,7 @@ export class Item {
 
   decreaseStock(quantity: number): void {
     try {
-      this.stock.decrement(quantity);
+      this.stock = this.stock.decrement(quantity);
     } catch {
       throw new InsufficientStockException(this.id, quantity, this.stock.value);
     }

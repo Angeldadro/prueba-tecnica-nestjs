@@ -6,6 +6,7 @@ import { OrderDto } from '../dtos/order.dto';
 import { PrismaService } from '../persistance/prisma.service';
 import { PayOrderUseCase } from '@/src/application/pay-order.usecase';
 import { DecreaseItemStockUseCase } from '@/src/application/decrease-item-stock.usecase';
+import { IncreaseItemStockUseCase } from '@/src/application/increase-item-stock.usecase';
 
 @Controller('orders')
 class CreateOrderController {
@@ -13,6 +14,7 @@ class CreateOrderController {
     private readonly createOrderUseCase: CreateOrderUseCase,
     private readonly payOrderUseCase: PayOrderUseCase,
     private readonly decreaseItemStockUseCase: DecreaseItemStockUseCase,
+    private readonly increaseItemStockUseCase: IncreaseItemStockUseCase,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -52,7 +54,7 @@ class CreateOrderController {
     } catch (err) {
       await this.prisma.$transaction(async (tx) => {
         for (const item of command.items) {
-          const result = await this.decreaseItemStockUseCase.execute(
+          const result = await this.increaseItemStockUseCase.execute(
             { id: item.itemId, quantity: item.quantity },
             tx,
           );
