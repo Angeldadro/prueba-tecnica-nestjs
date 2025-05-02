@@ -14,23 +14,6 @@ class OrderItemResponseDto {
   priceAtOrder: number;
 }
 
-class AddressResponseDto {
-  @ApiProperty({ example: '123 Calle Falsa' })
-  street: string;
-
-  @ApiProperty({ example: 'Ciudad' })
-  city: string;
-
-  @ApiProperty({ example: 'Estado' })
-  state: string;
-
-  @ApiProperty({ example: '12345' })
-  zipCode: string;
-
-  @ApiProperty({ example: 'País' })
-  country: string;
-}
-
 export class OrderDto {
   @ApiProperty({ example: 'order-uuid-1234' })
   id: string;
@@ -38,8 +21,8 @@ export class OrderDto {
   @ApiProperty({ example: 'PENDING' })
   status: string;
 
-  @ApiProperty({ type: AddressResponseDto })
-  deliveryAddress: AddressResponseDto;
+  @ApiProperty({ example: 15.5 })
+  totalAmount: number;
 
   @ApiProperty({ type: [OrderItemResponseDto] })
   orderItems: OrderItemResponseDto[];
