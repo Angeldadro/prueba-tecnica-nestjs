@@ -4,6 +4,7 @@ import { ItemAlreadyExistsException } from '@/src/domain/errors/item-already-exi
 import { ItemNotFoundException } from '@/src/domain/errors/item-not-found.error';
 import { OrderAlreadyExistsException } from '@/src/domain/errors/order-already-exists.error';
 import { PaymentFailedException } from '@/src/domain/errors/payment-failed.error';
+import { NotFoundException } from '@nestjs/common';
 import {
   Catch,
   ExceptionFilter,
@@ -21,6 +22,7 @@ const errorCodes = {
   [PaymentFailedException.name]: 402,
   [InvalidCardDetailsException.name]: 400,
   [InsufficientStockException.name]: 400,
+  [NotFoundException.name] : 404
 };
 
 @Catch()
