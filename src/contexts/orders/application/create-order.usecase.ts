@@ -8,7 +8,8 @@ import {
   OrderRepository,
 } from '@orders/domain/repos/order.repository';
 import { NotFoundException as ItemNotFoundException } from '@nestjs/common';
-import { Order, OrderItem } from '@orders/domain/entitys/order.entity';
+import { Order } from '@orders/domain/entitys/order.entity';
+import { OrderItem } from '@orders/domain/entitys/order-item.entity';
 import { Item } from '@items/domain/entitys/item.entity';
 import { Transaction } from '@shared/persistance/transactions';
 import { OrderAlreadyExistsException } from '@orders/domain/errors/order-already-exists.error';

@@ -2,67 +2,15 @@ import {
   OrderStatus,
   OrderStatusEnum,
 } from '@orders/domain/value-objects/order-status.vo';
-import { Price } from '@orders/domain/value-objects/price.vo';
-
-export class OrderItem {
-  private _id: string;
-  private _quantity: number;
-  private _priceAtOrder: Price;
-  private _itemId: string;
-
-  constructor(
-    id: string,
-    itemId: string,
-    quantity: number,
-    priceAtOrder: number,
-  ) {
-    this._id = id;
-    this._itemId = itemId;
-    this._quantity = quantity;
-    this._priceAtOrder = new Price(priceAtOrder);
-  }
-
-  toPrimitives(): {
-    id: string;
-    itemId: string;
-    quantity: number;
-    priceAtOrder: number;
-  } {
-    return {
-      id: this._id,
-      itemId: this._itemId,
-      quantity: this.quantity,
-      priceAtOrder: this.priceAtOrder,
-    };
-  }
-
-  static fromPrimitives(data: {
-    id: string;
-    itemId: string;
-    quantity: number;
-    priceAtOrder: number;
-  }): OrderItem {
-    return new OrderItem(
-      data.id,
-      data.itemId,
-      data.quantity,
-      data.priceAtOrder,
-    );
-  }
-  get id(): string {
-    return this._id;
-  }
-  get quantity(): number {
-    return this._quantity;
-  }
-  get priceAtOrder(): number {
-    return this._priceAtOrder.value;
-  }
-  get itemId(): string {
-    return this._itemId;
-  }
+import { OrderItem, OrderItemPrimitives } from '@orders/domain/entitys/order-item.entity';
+export interface OrderData {
+  id: string;
+  orderItems: OrderItemPrimitives[];
+  totalAmount: number;
+  status: string;
+  createdAt: Date;
+  paymentGatewayRef?: string;
 }
-
 export class Order {
   public readonly id: string;
   private _status: OrderStatus;
@@ -79,11 +27,9 @@ export class Order {
     paymentGatewayRef?: string,
     createdAt?: Date,
   ) {
+
     this.id = id;
-    this.orderItems = orderItems.map(
-      (item) =>
-        new OrderItem(item.id, item.itemId, item.quantity, item.priceAtOrder),
-    );
+    this.orderItems = orderItems;
     this.status = status;
     this.totalAmount = totalAmount;
     this.paymentGatewayRef = paymentGatewayRef;
@@ -108,56 +54,26 @@ export class Order {
 
   markAsRejected(): void {
     if (!this.status.isPending()) {
-      console.warn(
-        `Attempted to reject order in status: ${this.status.value}. State remains ${this.status.value}`,
-      );
       return;
     }
     this.status = new OrderStatus(OrderStatusEnum.REJECTED);
   }
 
-  static fromPrimitives(data: {
-    id: string;
-    status: string;
-    totalAmount: number;
-    orderItems: {
-      id: string;
-      itemId: string;
-      quantity: number;
-      priceAtOrder: number;
-    }[];
-    paymentGatewayRef?: string;
-    createdAt: Date;
-  }): Order {
-    const orderItems = data.orderItems.map((item) =>
-      OrderItem.fromPrimitives(item),
-    );
+  static fromPrimitives(data: OrderData): Order {
+    const orderItems = data.orderItems.map((item) => OrderItem.fromPrimitives(item));
     const status = OrderStatus.fromString(data.status);
 
     return new Order(
       data.id,
       orderItems,
       status,
-
       data.totalAmount,
       data.paymentGatewayRef,
       data.createdAt,
     );
   }
 
-  toPrimitives(): {
-    id: string;
-    status: string;
-    orderItems: {
-      id: string;
-      itemId: string;
-      quantity: number;
-      priceAtOrder: number;
-    }[];
-    totalAmount: number;
-    paymentGatewayRef?: string;
-    createdAt: Date;
-  } {
+  toPrimitives(): OrderData {
     return {
       id: this.id,
       status: this.status.value,

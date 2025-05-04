@@ -19,7 +19,7 @@ export class ListItemsUseCase {
       const items = await this.itemRepository.findAll();
       return success(items);
     } catch (err) {
-      return failure(err as Error);
+      return failure(err);
     }
   }
 }
