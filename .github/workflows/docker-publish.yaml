@@ -41,7 +41,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            angel-delgado/nestjs-angeldadro:latest
+            angedadro/nestjs-angeldadro:latest
 
           cache-from: type=gha
           cache-to: type=gha,mode=max
