@@ -13,6 +13,7 @@ import { LoggingInterceptor } from '@/src/interceptors/logging.interceptor';
 import { ItemExceptionsFilter } from '@items/infraestructure/filters/item-exceptions.filter';
 import { OrderExceptionsFilter } from '@orders/infraestructure/filters/order-exceptions.filter';
 import { DefaultExceptionsFilter } from '@/src/default-exceptions-errors';
+import { AuthExceptionsFilter } from './contexts/users/infraestructure/filters/auth-exceptions.filter';
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
@@ -23,7 +24,7 @@ async function bootstrap() {
   await setupRateLimit(app);
   await setupCompression(app);
   await setupCors(app);
-  app.useGlobalFilters(new ItemExceptionsFilter(), new OrderExceptionsFilter());
+  app.useGlobalFilters(new ItemExceptionsFilter(), new OrderExceptionsFilter(), new AuthExceptionsFilter());
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalFilters(new DefaultExceptionsFilter());
   const config = new DocumentBuilder()
@@ -31,12 +32,12 @@ async function bootstrap() {
     .setDescription('Descripción de la API creada con NestJS, Bun y Fastify')
     .setVersion('1.0')
     .addBearerAuth()
-    
+
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.PORT || 3000);
+  await app.listen(process.env.PORT || 3000, '0.0.0.0');
 }
 
 bootstrap();

@@ -21,8 +21,6 @@ bun.lock
 bun.lock.d
 bun.lock.d
 
-#node 
-package-lock.json
 
 # OS
 .DS_Store
