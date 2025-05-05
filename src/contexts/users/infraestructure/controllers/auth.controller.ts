@@ -56,7 +56,11 @@ export class AuthController {
     if (!registerDto?.email || !registerDto?.password) {
       throw new UnauthorizedException('Email and password are required');
     }
-    return this.registerUseCase.execute(registerDto.email, registerDto.password);
+    const result = await this.registerUseCase.execute(registerDto.email, registerDto.password);
+    if (!result.isSuccess) {
+      throw new UnauthorizedException(result.error.message);
+    }
+    return result.value;
   }
 
   @Post('verify')
