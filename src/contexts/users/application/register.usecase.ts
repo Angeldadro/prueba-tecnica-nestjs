@@ -21,8 +21,9 @@ export class RegisterUseCase {
       if (existingUser) {
         return failure(new Error('Email already exists'));
       }
-      const salt = process.env.PASSWORD_SALT || 10;
-      const hashedPassword = await bcrypt.hash(password, salt);
+      const salt = 10;
+      const salted = bcrypt.genSaltSync(salt);
+      const hashedPassword = bcrypt.hashSync(password, salted);
       const user = User.create({
         email,
         password: hashedPassword,
