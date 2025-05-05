@@ -14,4 +14,5 @@ spec:
             backend:
               service:
                 name: nestjs-app-service
-                port: number:3000
+                port:
+                  number: 3000
