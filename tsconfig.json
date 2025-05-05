@@ -12,9 +12,12 @@
     "baseUrl": "./",
     "paths": {
       "@/src/*": ["./src/*"],
-      "@/domain/*": ["./src/domain/*"],
-      "@/application/*": ["./src/application/*"],
-      "@/infrastructure/*": ["./src/infrastructure/*"]
+      "@orders/*": ["./src/contexts/orders/*"],
+      "@items/*": ["./src/contexts/items/*"],
+      "@users/*": ["./src/contexts/users/*"],
+      "@auth/*": ["./src/contexts/auth/*"],
+      "@shared/*": ["./src/contexts/shared/*"],
+      "@shippings/*": ["./src/contexts/shippings/*"]
     },
 
     "incremental": true,

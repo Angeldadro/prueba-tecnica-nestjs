@@ -5,12 +5,14 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { setupHelmet } from './infrastructure/middleware/helmet.middleware';
-import { setupRateLimit } from './infrastructure/middleware/rate-limit.middleware';
-import { setupCompression } from './infrastructure/middleware/compression.middleware';
-import { setupCors } from './infrastructure/middleware/cors.middleware';
-import { LoggingInterceptor } from './interceptors/logging.interceptor';
-import { AllExceptionsFilter } from './infrastructure/filters/all-exceptions.filter';
+import { setupHelmet } from '@/src/middleware/helmet.middleware';
+import { setupRateLimit } from '@/src/middleware/rate-limit.middleware';
+import { setupCompression } from '@/src/middleware/compression.middleware';
+import { setupCors } from '@/src/middleware/cors.middleware';
+import { LoggingInterceptor } from '@/src/interceptors/logging.interceptor';
+import { ItemExceptionsFilter } from '@items/infraestructure/filters/item-exceptions.filter';
+import { OrderExceptionsFilter } from '@orders/infraestructure/filters/order-exceptions.filter';
+import { DefaultExceptionsFilter } from '@/src/default-exceptions-errors';
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
@@ -21,12 +23,15 @@ async function bootstrap() {
   await setupRateLimit(app);
   await setupCompression(app);
   await setupCors(app);
-  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalFilters(new ItemExceptionsFilter(), new OrderExceptionsFilter());
   app.useGlobalInterceptors(new LoggingInterceptor());
+  app.useGlobalFilters(new DefaultExceptionsFilter());
   const config = new DocumentBuilder()
     .setTitle('My Bun NestJS API')
     .setDescription('Descripción de la API creada con NestJS, Bun y Fastify')
     .setVersion('1.0')
+    .addBearerAuth()
+    
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
