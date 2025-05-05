@@ -2,7 +2,6 @@ import { CreateOrderController } from '@orders/infraestructure/controllers/creat
 import { Module } from '@nestjs/common';  
 import { OrderRepositoryImpl } from '@orders/infraestructure/adapters/order.repository';
 import { ItemRepositoryImpl } from '@items/infraestructure/adapters/items.repository';
-import { PaymentGatewayImpl } from '@orders/infraestructure/adapters/payment-gateway.adapter';
 import { CreateOrderUseCase } from '@orders/application/create-order.usecase';
 import { PrismaService } from '@shared/persistance/prisma.service';
 import { ORDER_REPOSITORY } from '@orders/domain/repos/order.repository';
@@ -20,9 +19,11 @@ import { ShippingRepositoryAdapter } from '@shippings/infraestructure/repos/ship
 import { ItemsModule } from '@items/items.module';
 import { ListUserOrdersController } from '@orders/infraestructure/controllers/list-user-orders.controller';
 import { ListUserOrdersUseCase } from '@orders/application/list-user-orders.usecase';
+import { WompiGatewayAdapter } from '@orders/infraestructure/adapters/wompi-gateway.adapter';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [ItemsModule],
+  imports: [ItemsModule, ConfigModule.forRoot()],
   controllers: [
     CreateOrderController,
     ListOrdersController,
@@ -40,12 +41,13 @@ import { ListUserOrdersUseCase } from '@orders/application/list-user-orders.usec
     },
     {
       provide: PAYMENT_GATEWAY,
-      useClass: PaymentGatewayImpl,
+      useClass: WompiGatewayAdapter,
     },
     {
       provide: SHIPPING_REPOSITORY,
       useClass: ShippingRepositoryAdapter,
     },
+
     PayOrderUseCase,
     IncreaseItemStockUseCase,
     DecreaseItemStockUseCase,

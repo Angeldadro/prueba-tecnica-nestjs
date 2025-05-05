@@ -33,7 +33,7 @@ export class ItemRepositoryImpl implements ItemRepository {
   async findById(id: string, tx?: Transaction): Promise<Item | null> {
     const prismaClient = tx ? (tx as PrismaClient) : this.prisma;
     const itemData = await prismaClient.item.findUnique({
-      where: { id },
+      where: { id: id },
     });
 
     return this.mapPrismaItemToDomain(itemData);

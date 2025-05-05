@@ -1,19 +1,21 @@
 
 export interface CardDetailsPrimitives {
-  cardNumber: string;
-  expiryMonth: string;
-  expiryYear: string;
-  cvv: string;
+  number: string;
+  expMonth: string;
+  expYear: string;
+  cvc: string;
+  cardHolder: string;
 }
 
 export class CardDetails {
   constructor(
-    public readonly cardNumber: string,
-    public readonly expiryMonth: string,
-    public readonly expiryYear: string,
-    public readonly cvv: string,
+    public readonly number: string,
+    public readonly expMonth: string,
+    public readonly expYear: string,
+    public readonly cvc: string,
+    public readonly cardHolder: string,
   ) {
-    if (!cardNumber || !expiryMonth || !expiryYear || !cvv) {
+    if (!number || !expMonth || !expYear || !cvc || !cardHolder) {
       throw new Error('Card details are incomplete.');
     }
   }
@@ -23,10 +25,11 @@ export class CardDetails {
   ): CardDetails | null {
     if (!data) return null;
     return new CardDetails(
-      data.cardNumber,
-      data.expiryMonth, 
-      data.expiryYear,
-      data.cvv
+      data.number,  
+      data.expMonth, 
+      data.expYear,
+      data.cvc,
+      data.cardHolder
     );
   }
 }

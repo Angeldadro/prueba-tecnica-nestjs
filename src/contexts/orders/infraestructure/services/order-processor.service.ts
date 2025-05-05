@@ -6,9 +6,7 @@ import { PayOrderUseCase } from '@orders/application/pay-order.usecase';
 import { CreateShippingUseCase } from '@shippings/application/create-shipping.usecase';
 import { Result, success, failure } from '@shared/ROP/result';
 import { Address } from '@shippings/domain/value-objects/address.vo';
-import { OrderData } from '@orders/domain/entitys/order.entity';
 import { PrismaService } from '@shared/persistance/prisma.service';
-import { Transaction } from '@shared/persistance/transactions';
 
 @Injectable()
 export class OrderProcessorService {
@@ -20,7 +18,11 @@ export class OrderProcessorService {
     private readonly prisma: PrismaService
   ) { }
 
-  async processOrder(command: CreateOrderDto, userId: string): Promise<Result<string, Error>> {
+  async processOrder(
+    command: CreateOrderDto,
+    userId: string,
+    userEmail: string,
+  ): Promise<Result<string, Error>> {
     try {
       // 1. Reservar stock
       await this.prisma.$transaction(async (tx) => {
@@ -42,9 +44,9 @@ export class OrderProcessorService {
       await this.prisma.$transaction(async (tx) => {
         const orderResult = await this.createOrderUseCase.execute(
           {
-            id: command.id,
+            ...command,
             userId,
-            items: command.items,
+            userEmail,
           },
           tx
         );
@@ -60,11 +62,14 @@ export class OrderProcessorService {
           {
             id: command.id,
             paymentDetails: {
-              cardNumber: command.paymentDetails.cardNumber,
-              expiryMonth: command.paymentDetails.expiryMonth,
-              expiryYear: command.paymentDetails.expiryYear,
-              cvv: command.paymentDetails.cvv,
+              number: command.paymentDetails.number,
+              cvc: command.paymentDetails.cvc,
+              expMonth: command.paymentDetails.expMonth,
+              expYear: command.paymentDetails.expYear,
+              cardHolder: command.paymentDetails.cardHolder,
             },
+            email: userEmail,
+            acceptanceToken: command.acceptanceToken,
           },
           tx
         );
@@ -72,7 +77,7 @@ export class OrderProcessorService {
         if (!paymentResult.isSuccess) {
           throw paymentResult.error;
         }
-      });
+      }, { maxWait: 1000000, timeout: 1000000 });
 
       // 4. Crear envío
       await this.prisma.$transaction(async (tx) => {

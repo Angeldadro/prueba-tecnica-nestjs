@@ -20,8 +20,6 @@ import {
   OrderStatusEnum,
 } from '@orders/domain/value-objects/order-status.vo';
 
-
-
 interface OrderItemCommand {
   id: string;
   itemId: string;
@@ -31,11 +29,13 @@ interface OrderItemCommand {
 interface CreateOrderCommand {
   id: string;
   userId: string;
+  acceptanceToken: string;
+  userEmail: string;
   items: OrderItemCommand[];
 }
 
 @Injectable()
-export class CreateOrderUseCase {
+export class CreateOrderUseCase  {
   constructor(
     @Inject(ORDER_REPOSITORY)
     private readonly orderRepository: OrderRepository,

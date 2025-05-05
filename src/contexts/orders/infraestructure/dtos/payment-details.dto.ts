@@ -1,23 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsString, Length } from 'class-validator';
 
 export class PaymentDetailsDto {
   @ApiProperty({ example: '4111111111111111' })
   @IsString()
-  cardNumber: string;
+  number: string;
 
   @ApiProperty({ example: '05' })
   @IsString()
   @Length(2, 2)
-  expiryMonth: string;
+  expMonth: string;
 
   @ApiProperty({ example: '2025' })
   @IsString()
   @Length(4, 4)
-  expiryYear: string;
+  expYear: string;
 
   @ApiProperty({ example: '123' })
   @IsString()
   @Length(3, 4)
-  cvv: string;
+  cvc: string;
+
+  @ApiProperty({ example: 'José Pérez' })
+  @IsString()
+  @IsNotEmpty()
+  cardHolder: string;
 }
