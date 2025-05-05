@@ -27,6 +27,9 @@ export class Shipping {
     status: ShippingStatus = new ShippingStatus(ShippingStatusEnum.PENDING),
     userId: string,
   ) {
+    if (!id || !orderId || !items || !shippingAddress || !status || !userId) {
+      throw new Error('Invalid shipping data');
+    }
     this._id = id;
     this._orderId = orderId;
     this._items = items;

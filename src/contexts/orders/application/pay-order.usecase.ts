@@ -14,15 +14,13 @@ import {
 } from '@orders/domain/repos/payment-gateway.port';
 import { PaymentFailedException } from '@orders/domain/errors/payment-failed.error';
 import { failure, Result, success } from '@shared/ROP/result';
+import { CardDetailsPrimitives } from '../../shippings/domain/value-objects/card-details.vo';
 
 interface PayOrderCommand {
   id: string;
-  paymentDetails: {
-    cardNumber: string;
-    expiryMonth: string;
-    expiryYear: string;
-    cvv: string;
-  };
+  paymentDetails: CardDetailsPrimitives;
+  email: string;
+  acceptanceToken: string;
 }
 
 @Injectable()
@@ -45,16 +43,19 @@ export class PayOrderUseCase {
 
     const totalAmount = order.totalAmount;
     const cardDetails = new CardDetails(
-      command.paymentDetails.cardNumber,
-      command.paymentDetails.expiryMonth,
-      command.paymentDetails.expiryYear,
-      command.paymentDetails.cvv,
+      command.paymentDetails.number,
+      command.paymentDetails.cvc,
+      command.paymentDetails.expMonth,
+      command.paymentDetails.expYear,
+      command.paymentDetails.cardHolder,
     );
 
     const paymentResult = await this.paymentGateway.processPayment(
       totalAmount,
       cardDetails,
-      order.id,
+      command.id,
+      command.email,
+      command.acceptanceToken,
     );
 
     if (!this.validatePayment(paymentResult)) {

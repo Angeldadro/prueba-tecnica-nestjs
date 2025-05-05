@@ -18,9 +18,10 @@ export class CreateOrderController {
   @ApiBearerAuth()
   async execute(@Body() command: CreateOrderDto, @Req() req: any): Promise<string> {
     const userId = req.user.id;
-    const result = await this.orderProcessorService.processOrder(command, userId);
+    const userEmail = req.user.email;
+    const result = await this.orderProcessorService.processOrder(command, userId, userEmail);
     if (!result.isSuccess) {
-      throw new Error(result.error.message);
+      throw result.error;
     }
     return result.value;
   }

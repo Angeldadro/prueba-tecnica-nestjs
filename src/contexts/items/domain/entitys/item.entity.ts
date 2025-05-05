@@ -15,6 +15,9 @@ export class Item {
     id: string,
     description?: string,
   ) {
+    if (!id || !name ) {
+      throw new Error('Invalid item data');
+    }
     this.id = id;
     this.name = name;
     this.description = description;
