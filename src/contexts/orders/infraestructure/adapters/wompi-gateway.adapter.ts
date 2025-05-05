@@ -30,37 +30,13 @@ export class WompiGatewayAdapter implements PaymentGateway {
 
     private generateSignature(amount: number, currency: string, reference: string): string {
         const amountInCents = Math.round(amount * 100);
-        
         const cleanedReference = reference.replace(/[^a-zA-Z0-9-]/g, '').substring(0, 32);
-        
         const data = `${cleanedReference}${amountInCents}${currency}${this.integrityToken}`;
-        
-        console.log('Generating signature with data:', { 
-            cleanedReference,
-            amountInCents, 
-            currency, 
-            integrityToken: this.integrityToken,
-            data 
-        });
-        
-        const signature = createHash('sha256')
-            .update(data)
-            .digest('hex');
-            
-        console.log('Generated signature:', signature);
-        return signature;
+        return createHash('sha256').update(data).digest('hex');
     }
 
     private async tokenizeCard(cardDetails: CardDetails): Promise<string> {
         try {
-            console.log('Tokenizing card with details:', {
-                number: cardDetails.number,
-                exp_month: cardDetails.expMonth,
-                exp_year: cardDetails.expYear,
-                cvc: cardDetails.cvc,
-                card_holder: cardDetails.cardHolder,
-            });
-
             const response = await axios.post(
                 `${this.baseUrl}/tokens/cards`,
                 {
@@ -78,10 +54,18 @@ export class WompiGatewayAdapter implements PaymentGateway {
                 }
             );
 
-            console.log('Card tokenization response:', response.data);
+            if (!response.data?.data?.id) {
+                throw new Error('Invalid card tokenization response');
+            }
+
             return response.data.data.id;
         } catch (error) {
-            console.error('Error tokenizing card:', error.response?.data || error.message);
+            if (axios.isAxiosError(error)) {
+                const errorMessage = error.response?.data?.error?.messages 
+                    ? JSON.stringify(error.response.data.error.messages)
+                    : 'Failed to tokenize card';
+                throw new Error(`Card tokenization failed: ${errorMessage}`);
+            }
             throw new Error('Failed to tokenize card');
         }
     }
@@ -111,8 +95,6 @@ export class WompiGatewayAdapter implements PaymentGateway {
             reference: cleanedReference,
         };
 
-        console.log('Creating transaction with data:', transactionData);
-
         try {
             const response = await axios.post(
                 `${this.baseUrl}/transactions`,
@@ -125,37 +107,32 @@ export class WompiGatewayAdapter implements PaymentGateway {
                 }
             );
 
-            console.log('Transaction response:', response.data);
+            if (!response.data?.data?.id) {
+                throw new Error('Invalid transaction response');
+            }
 
-            const transaction = response.data.data;
             return {
-                success: transaction.status === 'APPROVED',
-                transactionId: transaction.id,
-                message: transaction.status_message || 'Payment processed',
+                success: true,
+                transactionId: response.data.data.id,
+                message: 'Transaction created',
             };
         } catch (error) {
-            console.error('Error creating transaction:', {
-                error: error.response?.data,
-                status: error.response?.status,
-                headers: error.response?.headers,
-            });
-            
-            const errorData = error.response?.data;
-            const errorMessage = errorData?.error?.messages 
-                ? JSON.stringify(errorData.error.messages)
-                : error.message;
-            
-            throw new Error(`Failed to create transaction: ${errorMessage}`);
+            if (axios.isAxiosError(error)) {
+                const errorMessage = error.response?.data?.error?.messages 
+                    ? JSON.stringify(error.response.data.error.messages)
+                    : 'Failed to create transaction';
+                throw new Error(`Transaction creation failed: ${errorMessage}`);
+            }
+            throw new Error('Failed to create transaction');
         }
     }
 
     private async checkTransactionStatus(transactionId: string): Promise<PaymentResult> {
-        const maxAttempts = 30; // 60 segundos / 2 segundos = 30 intentos
+        const maxAttempts = 30;
         let attempts = 0;
 
         while (attempts < maxAttempts) {
             try {
-                console.log(`Checking transaction status for ID: ${transactionId} (attempt ${attempts + 1}/${maxAttempts})`);
                 const response = await axios.get(
                     `${this.baseUrl}/transactions/${transactionId}`,
                     {
@@ -165,7 +142,9 @@ export class WompiGatewayAdapter implements PaymentGateway {
                     }
                 );
 
-                console.log('Transaction status response:', response.data);
+                if (!response.data?.data) {
+                    throw new Error('Invalid transaction status response');
+                }
 
                 const transaction = response.data.data;
                 
@@ -173,7 +152,7 @@ export class WompiGatewayAdapter implements PaymentGateway {
                     return {
                         success: true,
                         transactionId: transaction.id,
-                        message: transaction.status_message || 'Payment approved',
+                        message: 'Payment approved',
                     };
                 } else if (transaction.status === 'DECLINED' || transaction.status === 'ERROR') {
                     return {
@@ -183,16 +162,19 @@ export class WompiGatewayAdapter implements PaymentGateway {
                     };
                 }
 
-                // Si está pendiente, esperamos 2 segundos antes de intentar de nuevo
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 attempts++;
             } catch (error) {
-                console.error('Error checking transaction status:', error.response?.data || error.message);
+                if (axios.isAxiosError(error)) {
+                    const errorMessage = error.response?.data?.error?.messages 
+                        ? JSON.stringify(error.response.data.error.messages)
+                        : 'Failed to check transaction status';
+                    throw new Error(`Transaction status check failed: ${errorMessage}`);
+                }
                 throw new Error('Failed to check transaction status');
             }
         }
 
-        // Si llegamos aquí, significa que la transacción sigue pendiente después de 60 segundos
         return {
             success: false,
             transactionId,
@@ -207,23 +189,8 @@ export class WompiGatewayAdapter implements PaymentGateway {
         email: string,
         acceptanceToken: string,
     ): Promise<PaymentResult> {
-        console.log('Starting payment process with:', {
-            amount,
-            email,
-            acceptanceToken,
-            orderId,
-            cardDetails: {
-                number: cardDetails.number,
-                expMonth: cardDetails.expMonth,
-                expYear: cardDetails.expYear,
-                cardHolder: cardDetails.cardHolder,
-            },
-        });
-
         try {
             const cardToken = await this.tokenizeCard(cardDetails);
-            console.log('Card tokenized successfully:', cardToken);
-
             const result = await this.createTransaction(
                 amount,
                 cardToken,
@@ -231,13 +198,12 @@ export class WompiGatewayAdapter implements PaymentGateway {
                 acceptanceToken,
                 orderId
             );
-
-            // Verificamos el estado de la transacción
-            console.log('Transaction created, checking status...');
             return await this.checkTransactionStatus(result.transactionId);
         } catch (error) {
-            console.error('Payment processing failed:', error);
-            throw error;
+            if (error instanceof Error) {
+                throw new Error(`Payment processing failed: ${error.message}`);
+            }
+            throw new Error('Payment processing failed');
         }
     }
 } 
