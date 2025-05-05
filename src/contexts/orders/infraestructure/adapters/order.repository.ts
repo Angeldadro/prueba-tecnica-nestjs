@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OrderRepository } from '@orders/domain/repos/order.repository';
-import { Order, OrderItem as OrderItemPrimitives } from '@orders/domain/entitys/order.entity';
+import { Order } from '@orders/domain/entitys/order.entity';
 import { Transaction } from '@shared/persistance/transactions';
 import { PrismaService } from '@shared/persistance/prisma.service';
 import {
@@ -9,6 +9,7 @@ import {
   Order as PrismaOrder,
   OrderItem as PrismaOrderItem,
 } from '@prisma/client';
+import { OrderItemPrimitives } from '@orders/domain/entitys/order-item.entity';
 type OrderWithItems = PrismaOrder & { orderItems: PrismaOrderItem[] };
 
 @Injectable()
@@ -18,14 +19,15 @@ export class OrderRepositoryImpl implements OrderRepository {
   private mapPrismaOrderToDomain(
     orderData: OrderWithItems,
   ): Order {
-    return Order.fromPrimitives({
-      id: orderData.id,
-      status: orderData.status,
-      totalAmount: orderData.totalAmount,
-      orderItems: orderData.orderItems.map((oi) => this.mapPrismaOrderItemToDomain(oi)),
-      paymentGatewayRef: orderData.paymentGatewayRef ?? undefined,
-      createdAt: orderData.createdAt,
-    });
+      return Order.fromPrimitives({
+        id: orderData.id,
+        status: orderData.status,
+        totalAmount: orderData.totalAmount,
+        orderItems: orderData.orderItems.map((oi) => this.mapPrismaOrderItemToDomain(oi)),
+        paymentGatewayRef: orderData.paymentGatewayRef ?? undefined,
+        createdAt: orderData.createdAt,
+        userId: orderData.userId,
+      });
   }
   private mapPrismaOrderItemToDomain(orderItem: PrismaOrderItem): OrderItem {
     return {
@@ -43,6 +45,7 @@ export class OrderRepositoryImpl implements OrderRepository {
       totalAmount: order.totalAmount,
       paymentGatewayRef: order.paymentGatewayRef ?? null,
       createdAt: order.createdAt,
+      userId: order.userId,
     };
   }
   
@@ -105,5 +108,17 @@ export class OrderRepositoryImpl implements OrderRepository {
     });
 
     return this.mapPrismaOrderToDomain(updateResult)!;
+  }
+
+  async findByUserId(userId: string, tx?: Transaction): Promise<Order[]> {
+    const client = tx as PrismaClient || this.prisma;
+    const orders = await client.order.findMany({
+      where: { userId },
+      include: {
+        orderItems: true,
+        shipping: true,
+      },
+    });
+    return orders.map((order) => this.mapPrismaOrderToDomain(order));
   }
 }

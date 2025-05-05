@@ -30,6 +30,7 @@ interface OrderItemCommand {
 
 interface CreateOrderCommand {
   id: string;
+  userId: string;
   items: OrderItemCommand[];
 }
 
@@ -54,7 +55,7 @@ export class CreateOrderUseCase {
       const items = await this.getItems(itemCommands, tx);
       const orderItems = this.processOrderItems(itemCommands, items);
       const totalAmount = this.getTotalAmount(orderItems);
-      const order = this.createOrderEntity(command.id, orderItems, totalAmount);
+      const order = this.createOrderEntity(command.id, command.userId, orderItems, totalAmount);
       await this.orderRepository.save(order, tx);
 
       return success(order);
@@ -121,6 +122,7 @@ export class CreateOrderUseCase {
 
   private createOrderEntity(
     orderId: string,
+    userId: string,
     orderItems: OrderItem[],
     totalAmount: number,
   ): Order {
@@ -129,6 +131,7 @@ export class CreateOrderUseCase {
       orderItems,
       new OrderStatus(OrderStatusEnum.PENDING),
       totalAmount,
+      userId,
     );
   }
 }

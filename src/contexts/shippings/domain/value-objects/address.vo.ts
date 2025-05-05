@@ -29,10 +29,7 @@ export class Address {
     );
   }
 
-  public static fromPrimitives(
-    data: AddressPrimitives | null,
-  ): Address | null {
-    if (!data) return null;
+  public static fromPrimitives(data: AddressPrimitives): Address {
     return new Address(
       data.street,
       data.city,

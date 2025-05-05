@@ -7,6 +7,7 @@ export interface OrderData {
   id: string;
   orderItems: OrderItemPrimitives[];
   totalAmount: number;
+  userId: string;
   status: string;
   createdAt: Date;
   paymentGatewayRef?: string;
@@ -18,12 +19,13 @@ export class Order {
   public readonly createdAt: Date;
   public paymentGatewayRef?: string;
   public readonly totalAmount: number;
-
+  public readonly userId: string;
   constructor(
     id: string,
     orderItems: OrderItem[],
     status: OrderStatus,
     totalAmount: number,
+    userId: string,
     paymentGatewayRef?: string,
     createdAt?: Date,
   ) {
@@ -31,7 +33,8 @@ export class Order {
     this.id = id;
     this.orderItems = orderItems;
     this.status = status;
-    this.totalAmount = totalAmount;
+    this.totalAmount = totalAmount; 
+    this.userId = userId;
     this.paymentGatewayRef = paymentGatewayRef;
     this.createdAt = createdAt || new Date();
   }
@@ -43,6 +46,7 @@ export class Order {
   set status(value: OrderStatus) {
     this._status = value;
   }
+
 
   markAsProcessed(paymentRef: string): void {
     if (!this.status.isPending()) {
@@ -68,6 +72,7 @@ export class Order {
       orderItems,
       status,
       data.totalAmount,
+      data.userId,
       data.paymentGatewayRef,
       data.createdAt,
     );
@@ -79,6 +84,7 @@ export class Order {
       status: this.status.value,
       orderItems: this.orderItems.map((item) => item.toPrimitives()),
       totalAmount: this.totalAmount,
+      userId: this.userId,
       paymentGatewayRef: this.paymentGatewayRef,
       createdAt: this.createdAt,
     };

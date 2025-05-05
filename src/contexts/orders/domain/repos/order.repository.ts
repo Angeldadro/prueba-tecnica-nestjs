@@ -6,5 +6,6 @@ export interface OrderRepository {
   save(order: Order, tx?: Transaction): Promise<Order>;
   findAll(tx?: Transaction): Promise<Order[]>;
   update(order: Order, tx?: Transaction): Promise<Order>;
+  findByUserId(userId: string, tx?: Transaction): Promise<Order[]>;
 }
 export const ORDER_REPOSITORY = Symbol('OrderRepository');

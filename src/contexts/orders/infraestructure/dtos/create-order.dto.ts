@@ -1,14 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, ValidateNested, IsString } from 'class-validator';
+import { IsArray, ValidateNested, IsString, IsUUID } from 'class-validator';
 import { OrderItemDto } from '@orders/infraestructure/dtos/order-item.dto';
 import { AddressDto } from '@orders/infraestructure/dtos/address.dto';
 import { PaymentDetailsDto } from '@orders/infraestructure/dtos/payment-details.dto';
+import { ShippingDto } from '@shippings/infraestructure/dtos/shipping.dto';
 
 export class CreateOrderDto {
   @ApiProperty({ example: 'order-uuid-1234' })
   @IsString()
   id: string;
+
+  @ApiProperty({ example: 'user-uuid-1234' })
+  @IsUUID()
+  userId: string;
 
   @ApiProperty({ type: [OrderItemDto] })
   @IsArray()
@@ -25,4 +30,9 @@ export class CreateOrderDto {
   @ValidateNested()
   @Type(() => PaymentDetailsDto)
   paymentDetails: PaymentDetailsDto;
+
+  @ApiProperty()
+  @ValidateNested()
+  @Type(() => AddressDto)
+  shippingAddress: AddressDto;
 }
